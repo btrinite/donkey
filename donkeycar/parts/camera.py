@@ -139,9 +139,8 @@ class Webcam(BaseCamera):
                 ret, snapshot = self.cam.read()
             self.logger.debug("New image acquired")
             if ret:
-                self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
-                # We don't need anymore this resizing, we configure the right resolution in the WebCam
-                #self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+                snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
+                self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
 
             stop = datetime.now()
             s = 1 / self.framerate - (stop - start).total_seconds()
