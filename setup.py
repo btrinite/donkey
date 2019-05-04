@@ -45,7 +45,9 @@ setup(name='donkeycar',
                       'pandas',
                       'watchdog',
                       'pyserial',
-                      'ascii_graph'
+                      'ascii_graph',
+                      'simplejson',
+                      'Adafruit_ADS1x15'
                      ],
 
     extras_require={
