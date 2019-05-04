@@ -158,6 +158,7 @@ class Webcam(BaseCamera):
 
     def run_threaded(self):
         dk.perfmon.LogEvent('WebCam-Poll')
+        self.logger.debug("Poll Frame "+str(self.frame.shape))
         return self.frame
 
     def shutdown(self):
