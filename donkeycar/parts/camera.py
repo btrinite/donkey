@@ -126,9 +126,10 @@ class Webcam(BaseCamera):
         self.logger.info("Camera Exp :"+str(self.cam.get(cv2.CAP_PROP_EXPOSURE)))
         self.logger.info("Camera Auto Exp :"+str(self.cam.get(cv2.CAP_PROP_AUTO_EXPOSURE)))
 
-        self.parent_p, self.child_p = Pipe()
-        self.p = Process(target=self.update_process, args=(self.child_p,))
-        self.p.start()
+        if (myConfig['CAMERA']['PREPROCESSING_THREAD']==1):
+            self.parent_p, self.child_p = Pipe()
+            self.p = Process(target=self.update_process, args=(self.child_p,))
+            self.p.start()
 
     def update_process(self, child_p):
         from datetime import datetime, timedelta
@@ -173,7 +174,8 @@ class Webcam(BaseCamera):
         # indicate that the thread should be stopped
         self.on = False
         self.logger.info('stoping Webcam')
-        self.p.join()
+        if (myConfig['CAMERA']['PREPROCESSING_THREAD']==1):
+            self.p.join()
         time.sleep(.5)
 
 class MockCamera(BaseCamera):
