@@ -141,8 +141,11 @@ class Webcam(BaseCamera):
                 ret, snapshot = self.cam.read()
             self.logger.debug("New image acquired")
             if ret:
-                snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
-                self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+                if (myConfig['CAMERA']['RESIZE'] == 1):
+                    snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
+                    self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+                else:
+                    self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
                 child_p.send(self.frame)
 
             stop = datetime.now()
