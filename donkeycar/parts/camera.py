@@ -1,9 +1,17 @@
 import os
 import time
+from multiprocessing import Process
 import numpy as np
 from PIL import Image
 import glob
 import cv2
+
+import donkeycar as dk
+import subprocess
+
+from donkeycar.parts.configctrl import myConfig, CONFIG2LEVEL
+
+import logging
 
 class BaseCamera:
 
@@ -12,6 +20,10 @@ class BaseCamera:
 
 class PiCamera(BaseCamera):
     def __init__(self, resolution=(120, 160), framerate=20):
+
+        self.logger = logging.getLogger(myConfig['DEBUG']['PARTS']['CAMERA']['NAME'])
+        self.logger.setLevel(myConfig['DEBUG']['PARTS']['CAMERA']['LEVEL'])
+
         from picamera.array import PiRGBArray
         from picamera import PiCamera
         resolution = (resolution[1], resolution[0])
@@ -31,12 +43,13 @@ class PiCamera(BaseCamera):
         self.frame = None
         self.on = True
 
-        print('PiCamera loaded.. .warming camera')
+        self.logger.info('PiCamera loaded.. .warming camera')
         time.sleep(2)
 
 
     def run(self):
-        f = next(self.stream)
+        with dk.perfmon.TaskDuration('RaspiCam') as m:
+            f = next(self.stream)
         frame = f.array
         self.rawCapture.truncate(0)
         return frame
@@ -56,55 +69,100 @@ class PiCamera(BaseCamera):
     def shutdown(self):
         # indicate that the thread should be stopped
         self.on = False
-        print('stoping PiCamera')
+        self.logger.info('stoping PiCamera')
         time.sleep(.5)
         self.stream.close()
         self.rawCapture.close()
         self.camera.close()
 
 class Webcam(BaseCamera):
-    def __init__(self, resolution = (160, 120), framerate = 20):
+    def init_cam (self, resolution = (160, 120), fps=60):
+        
+        self.logger = logging.getLogger(myConfig['DEBUG']['PARTS']['CAMERA']['NAME'])
+        self.logger.setLevel(CONFIG2LEVEL[myConfig['DEBUG']['PARTS']['CAMERA']['LEVEL']])
+
+        self.cam = cv2.VideoCapture(0+cv2.CAP_V4L2)
+        self.cam.set(cv2.CAP_PROP_FOURCC ,cv2.VideoWriter_fourcc('M', 'J', 'P', 'G') );
+        self.cam.set(cv2.CAP_PROP_FRAME_WIDTH,resolution[1])
+        self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT,resolution[0])
+        self.cam.set(cv2.CAP_PROP_FPS, fps)
+        
+        self.resolution = resolution
+        self.fps = fps
+
+    def __init__(self, resolution = (160, 120), fps=60, framerate = 20):
 
         super().__init__()
 
-        self.cam = cv2.VideoCapture(0)
-        self.resolution = resolution
+        self.init_cam(resolution, fps)
         self.framerate = framerate
 
         # initialize variable used to indicate
         # if the thread should be stopped
         self.frame = None
         self.on = True
-
-        print('WebcamVideoStream loaded.. .warming camera')
+        self.perflogger = dk.perfmon.TaskCycle('WebCam')
+        self.logger.info('WebcamVideoStream loaded.. .warming camera')
 
         time.sleep(2)
+        check_fps = self.cam.get(cv2.CAP_PROP_FPS)
+        if (check_fps == 0):
+            self.cam.release()
+            self.logger.info('WebcamVideoStream loaded.. .Error, busy, retstarting')
+            os._exit(1)
+            time.sleep(2)
+
+        if (len(myConfig['CAMERA']['POSTFIX_SCRIPT']) > 0):
+            self.logger.info('Postfix setting script called :'+myConfig['CAMERA']['POSTFIX_SCRIPT'])
+            os.system(myConfig['CAMERA']['POSTFIX_SCRIPT'])             
+
+        check_fps = self.cam.get(cv2.CAP_PROP_FPS)
+        self.logger.info("Camera read configuration:")
+        self.logger.info("Camera Width :"+str(self.cam.get(cv2.CAP_PROP_FRAME_WIDTH)))
+        self.logger.info("Camera Height :"+str(self.cam.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        self.logger.info("Camera FPS :"+str(check_fps))
+        self.logger.info("Camera backend :"+str(self.cam.get(cv2.CAP_PROP_MODE)))
+        self.logger.info("Camera Exp :"+str(self.cam.get(cv2.CAP_PROP_EXPOSURE)))
+        self.logger.info("Camera Auto Exp :"+str(self.cam.get(cv2.CAP_PROP_AUTO_EXPOSURE)))
+
+        self.p = Process(target=self.update_process, args=())
+        self.p.start()
+
+    def update_process(self)
+        start = datetime.now()
+
+        with dk.perfmon.TaskDuration('WebCam') as m:
+            self.perflogger.LogCycle()
+            ret, snapshot = self.cam.read()
+        self.logger.debug("New image acquired")
+        if ret:
+            self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
+            # We don't need anymore this resizing, we configure the right resolution in the WebCam
+            #self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+
+        stop = datetime.now()
+        s = 1 / self.framerate - (stop - start).total_seconds()
+        if s > 0:
+            time.sleep(s)
+
 
     def update(self):
         from datetime import datetime, timedelta
 
         while self.on:
-            start = datetime.now()
-
-            ret, snapshot = self.cam.read()
-            if ret:
-                snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
-                self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
-
-            stop = datetime.now()
-            s = 1 / self.framerate - (stop - start).total_seconds()
-            if s > 0:
-                time.sleep(s)
-
+            time.sleep(0.01)
+#            self.update_process()
         self.cam.release()
 
     def run_threaded(self):
+        dk.perfmon.LogEvent('WebCam-Poll')
         return self.frame
 
     def shutdown(self):
         # indicate that the thread should be stopped
         self.on = False
-        print('stoping Webcam')
+        self.logger.info('stoping Webcam')
+        self.p.join()
         time.sleep(.5)
 
 class MockCamera(BaseCamera):
@@ -143,8 +201,8 @@ class ImageListCamera(BaseCamera):
         self.image_filenames.sort(key=get_image_index)
         #self.image_filenames.sort(key=os.path.getmtime)
         self.num_images = len(self.image_filenames)
-        print('%d images loaded.' % self.num_images)
-        print( self.image_filenames[:10])
+        logger.info('%d images loaded.' % self.num_images)
+        logger.info( self.image_filenames[:10])
         self.i_frame = 0
         self.frame = None
         self.update()

@@ -110,6 +110,8 @@ class OriginalWriter:
                 elif typ is 'str':
                     if key == 'user/mode':
                         self.out['extra']['mode'] = val
+                    elif key == 'flag':
+                        self.out['extra']['flag'] = val
                 elif typ == 'image_array':
                     img = Image.fromarray(np.uint8(val))
                 elif typ == 'boolean':
@@ -337,7 +339,8 @@ class Tub(object):
                 msg = 'Tub does not know what to do with this type {}'.format(typ)
                 raise TypeError(msg)
 
-        logger.info('write record ix {} '.format(str(self.current_ix)))
+        if (self.current_ix%100 == 0):
+            logger.info('write record ix {} '.format(str(self.current_ix)))
         self.write_json_record(json_data)
         return self.current_ix
 

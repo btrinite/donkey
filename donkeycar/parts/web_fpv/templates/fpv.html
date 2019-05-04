@@ -15,8 +15,10 @@
   <footer class="footer" id="vehicle_footer">
     <div class="container">
       <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-12">
-        </div>
+          <div class="col-sm-2" ><canvas id="gauge_battery" width="100" height="100"></canvas>Battery</div>
+          <div class="col-sm-2" ><canvas id="gauge_throttle" width="100" height="100"></canvas>Throttle</div>
+          <div class="col-sm-2" ><canvas id="gauge_angle" width="100" height="100"></canvas>Steering</div>
+          <div class="col-sm-2" ><canvas id="gauge_fullspeed" width="100" height="100"></canvas>Fullspeed</div>
       </div>
     </div>
   </footer>
@@ -26,7 +28,59 @@
 <script type="text/javascript">
   $( document ).ready(function() {
     console.log( "document ready!" );
-    driveHandler.load()
+    var opts = {
+      angle: 0.35, // The span of the gauge arc
+      lineWidth: 0.1, // The line thickness
+      radiusScale: 1, // Relative radius
+      pointer: {
+        length: 0.6, // // Relative to gauge radius
+        strokeWidth: 0.035, // The thickness
+        color: '#000000' // Fill color
+      },
+      limitMax: false,     // If false, max value increases automatically if value > maxValue
+      limitMin: false,     // If true, the min value of the gauge will be fixed
+      colorStart: '#6F6EA0',   // Colors
+      colorStop: '#C0C0DB',    // just experiment with them
+      strokeColor: '#EEEEEE',  // to see which ones work best for you
+      generateGradient: true,
+      highDpiSupport: true,     // High resolution support
+      
+    };
+    var target_battery = document.getElementById('gauge_battery'); // your canvas element
+    var target_throttle = document.getElementById('gauge_throttle'); // your canvas element
+    var target_angle = document.getElementById('gauge_angle'); // your canvas element
+    var target_fullspeed = document.getElementById('gauge_fullspeed'); // your canvas element
+    var gauge_battery = new Donut(target_battery).setOptions(opts); // create sexy gauge!
+    var gauge_throttle = new Donut(target_throttle).setOptions(opts); // create sexy gauge!
+    var gauge_angle = new Donut(target_angle).setOptions(opts); // create sexy gauge!
+    var gauge_fullspeed = new Donut(target_fullspeed).setOptions(opts); // create sexy gauge!
+    gauge_battery.maxValue = 15; // set max gauge value
+    gauge_battery.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+    gauge_battery.animationSpeed = 32; // set animation speed (32 is default value)
+    gauge_throttle.maxValue = 100; // set max gauge value
+    gauge_throttle.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+    gauge_throttle.animationSpeed = 32; // set animation speed (32 is default value)
+    gauge_angle.maxValue = 100; // set max gauge value
+    gauge_angle.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+    gauge_angle.animationSpeed = 32; // set animation speed (32 is default value)
+    gauge_fullspeed.maxValue = 15; // set max gauge value
+    gauge_fullspeed.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+    gauge_fullspeed.animationSpeed = 32; // set animation speed (32 is default value)
+    gauge_battery.set(0); // set actual value  
+    gauge_throttle.set(0); // set actual value  
+    gauge_angle.set(0); // set actual value
+    gauge_fullspeed.set(0);
+
+    var source = new EventSource("tele");
+    source.onmessage = function(event) {
+      console.log (event.data);
+      //document.getElementById("result").innerHTML += event.data + "<br>";
+      data = JSON.parse(event.data)
+      gauge_battery.set (50+data.battery)
+      gauge_throttle.set (50+data.user_throttle*50)
+      gauge_angle.set (50+data.user_angle*50)
+      gauge_fullspeed.set (data.fullspeed*100)
+    };
   });
 </script>
 

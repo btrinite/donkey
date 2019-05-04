@@ -10,6 +10,8 @@ import time
 from threading import Thread
 from .memory import Memory
 
+import donkeycar as dk
+
 
 class Vehicle():
     def __init__(self, mem=None):
@@ -46,7 +48,7 @@ class Vehicle():
         entry['run_condition'] = run_condition
 
         if threaded:
-            t = Thread(target=part.update, args=())
+            t = Thread(name=part.__class__.__name__, target=part.update, args=())
             t.daemon = True
             entry['thread'] = t
 
@@ -123,15 +125,23 @@ class Vehicle():
                 #get inputs from memory
                 inputs = self.mem.get(entry['inputs'])
 
-                #run the part
-                if entry.get('thread'):
-                    outputs = p.run_threaded(*inputs)
-                else:
-                    outputs = p.run(*inputs)
+                try:
+                    #run the part
+                    if entry.get('thread'):
+                        outputs = p.run_threaded(*inputs)
+                    else:
+                        outputs = p.run(*inputs)
+                except Exception as e:
+                    print("Exception while calling parts "+p.__class__.__name__)
+                    print(e)               
 
                 #save the output to memory
                 if outputs is not None:
-                    self.mem.put(entry['outputs'], outputs)
+                    try:
+                        self.mem.put(entry['outputs'], outputs)
+                    except :
+                        print("Part in error "+p.__class__.__name__)
+
 
                     
 

@@ -43,12 +43,15 @@ setup(name='donkeycar',
                       'eventlet',
                       'moviepy',
                       'pandas',
+                      'watchdog',
+                      'pyserial',
+                      'ascii_graph'
                      ],
 
     extras_require={
                     'pi': [
                         'picamera',
-                        'Adafruit_PCA9685',
+                        'Adafruit_PCA9685'
                         ]
                     },
     package_data={

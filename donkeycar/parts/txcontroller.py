@@ -3,7 +3,7 @@
 """
 Created on Wen Dec 06 15:29:44 2017
 
-@author: bznoit.trinite
+@author: benoit.trinite
 
 txwcontroller.py
 
@@ -15,15 +15,17 @@ txwcontroller.py
 import array
 import time
 import struct
+import os
 from threading import Thread
 import donkeycar as dk
 from sys import platform
 
-import logging
-logger = logging.getLogger('donkey.txctrl')
+from donkeycar.parts.configctrl import myConfig, CONFIG2LEVEL
 
-if platform != "darwin":
-    import serial
+import logging
+
+#if platform != "darwin":
+import serial
 
 def map_range(x, X_min, X_max, Y_min, Y_max):
     '''
@@ -45,61 +47,88 @@ class Txserial():
     '''
     An interface to a Tx through serial link
     '''
-    def __init__(self):
+    counter = 0
+
+    def __init__(self, logger):
         self.ser = None
         self.lastLocalTs = 0
-        self.lastDistTs = 0;
+        self.lastDistTs = 0
+        self.logger = logger
 
     def init(self):
         # Open serial link
-        self.ser = serial.Serial(
+        try:
+            self.ser = serial.Serial(
 
-               port='/dev/serial0',
-               baudrate = 115200,
-               parity=serial.PARITY_NONE,
-               stopbits=serial.STOPBITS_ONE,
-               bytesize=serial.EIGHTBITS,
-               timeout=1
-        )
-        logger.info('/dev/serial0 initialized')        
+                port=myConfig['TX']['TX_SERIAL'],
+                baudrate = 115200,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1
+            )
+            self.logger.info('/dev/serial0 initialized') 
+            self.ledStatus("init")       
+
+        except:
+            self.logger.info('Serial port not initialized')
+
         return True
 
-    def poll(self):
+    def poll(self, mode, vehicle_armed=None):
         '''
         query the state of the joystick, returns button which was pressed, if any,
         and axis which was moved, if any. button_state will be None, 1, or 0 if no changes,
         pressed, or released. axis_val will be a float from -1 to +1. button and axis will
         be the string label determined by the axis map in init.
         '''
+         
         steering_tx = 1500
         throttle_tx = 0
+        ch5_tx = 0
+        ch6_tx = 0
         freq_tx = 60
         ts = 0
+        speedometer = 0
         msg=""
+
+        if (Txserial.counter%10 == 0):
+            if (vehicle_armed==None or vehicle_armed==False):
+                self.ledStatus("disarmed")       
+            else:
+                self.ledStatus(mode)       
+        Txserial.counter += 1
+
         try:
             if self.ser.in_waiting > 50:
-                logger.info('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
+                self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
                 self.ser.reset_input_buffer()
             msg=self.ser.readline().decode('utf-8')
-            ts, steering_tx, throttle_tx, freq_tx = map(int,msg.split(','))
+            ts, steering_tx, throttle_tx, ch5_tx, ch6_tx, speedometer, freq_tx = map(int,msg.split(','))
 
         except:
-            logger.info('poll: Exception while parsing msg')
+            self.logger.debug('poll: Exception while parsing msg')
 
         now=time.clock()*1000
-        logger.info('poll: {} {}'.format(msg.strip(),len(msg)))
+        self.logger.debug('poll: {} {}'.format(msg.strip(),len(msg)))
         if (steering_tx == -1):
-            logger.info('poll: No Rx signal , forcing idle position')
-            return 0,1500,60
+            self.logger.debug('poll: No Rx signal , forcing idle position')
+            return 0,1500,0,0,60
         if (ts-self.lastDistTs < 2*(now-self.lastLocalTs)):
-            logger.info('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
+            self.logger.debug('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
         self.lastLocalTs = now
         self.lastDistTs = ts
-        logger.info('poll: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} freq_tx= {:02.0f}'.format(ts, steering_tx, throttle_tx, freq_tx))
+        self.logger.debug('poll: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f}'.format(ts, steering_tx, throttle_tx, speedometer))
 
 
-        return throttle_tx, steering_tx, freq_tx
+        return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, freq_tx, 
 
+    def ledStatus (self, status):
+        if (status!=None):
+            status = status + "\n"
+            if (self.ser != None):
+                self.ser.write(status.encode())    
+   
 
 class TxController(object):
     '''
@@ -107,29 +136,24 @@ class TxController(object):
     '''
 
     def __init__(self, poll_delay=0.0,
-                 throttle_tx_min=913,
-                 throttle_tx_max=2111,
-                 steering_tx_min=955,
-                 steering_tx_max=2085,
-                 throttle_tx_thresh=1520,
                  auto_record_on_throttle=True,
                  verbose = False
                  ):
 
+        self.logger = logging.getLogger(myConfig['DEBUG']['PARTS']['TXCTRL']['NAME'])
+        self.logger.setLevel(CONFIG2LEVEL[myConfig['DEBUG']['PARTS']['TXCTRL']['LEVEL']])
         self.angle = 0.0
         self.throttle = 0.0
         self.mode = 'user'
         self.poll_delay = poll_delay
         self.running = True
-        self.throttle_tx_thresh = throttle_tx_thresh
-        self.throttle_tx_min = throttle_tx_min
-        self.throttle_tx_max = throttle_tx_max
-        self.steering_tx_min = steering_tx_min
-        self.steering_tx_max = steering_tx_max
-
+        self.speedometer = 0
+        self.ch5 = False
+        self.ch6 = False
         self.recording = False
         self.auto_record_on_throttle = auto_record_on_throttle
         self.tx = None
+        self.vehicle_armed = None
         self.verbose = verbose
 
     def on_throttle_changes(self):
@@ -144,7 +168,7 @@ class TxController(object):
         attempt to init Tx
         '''
         try:
-            self.tx = Txserial()
+            self.tx = Txserial(self.logger)
             self.tx.init()
         except FileNotFoundError:
             print(" Unable to init Tx receiver.")
@@ -162,21 +186,40 @@ class TxController(object):
             time.sleep(5)
 
         while self.running:
-            throttle_tx, steering_tx, freq_tx = self.tx.poll()
-            if throttle_tx > self.throttle_tx_thresh:
-                self.throttle = map_range(throttle_tx, self.throttle_tx_min, self.throttle_tx_max, -1, 1)
+            throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, freq_tx = self.tx.poll(self.mode, self.vehicle_armed)
+            if throttle_tx > myConfig['TX']['TX_THROTTLE_TRESH']:
+                self.throttle = map_range(throttle_tx, myConfig['TX']['TX_THROTTLE_MIN'], myConfig['TX']['TX_THROTTLE_MAX'], -1, 1)
             else:
                 self.throttle = 0
             self.on_throttle_changes()
-            self.angle = 0-map_range(steering_tx, self.steering_tx_min, self.steering_tx_max, -1, 1)
-            logger.info('angle= {:01.2f} throttle= {:01.2f}'.format (self.angle, self.throttle))
+            self.angle = 0-map_range(steering_tx, myConfig['TX']['TX_STEERING_MIN'], myConfig['TX']['TX_STEERING_MAX'], -1, 1)
+            self.speedometer = 1-map_range(speedometer,myConfig['TX']['TX_SPEEDOMETER_MIN'], myConfig['TX']['TX_SPEEDOMETER_MAX'], 0, 1)
+            if (ch5_tx > myConfig['TX']['TX_CH_AUX_TRESH']+100):
+                self.ch5 = True
+
+            if (ch5_tx < myConfig['TX']['TX_CH_AUX_TRESH']-100):
+                self.ch5 = False
+
+            if (ch6_tx > myConfig['TX']['TX_CH_AUX_TRESH']+100):
+                self.ch6 = True
+
+            if (ch6_tx < myConfig['TX']['TX_CH_AUX_TRESH']-100):
+                self.ch6 = False
+
+            self.logger.debug('angle= {:01.2f} throttle= {:01.2f} speed= {:01.2f}'.format (self.angle, self.throttle, self.speedometer))
             time.sleep(self.poll_delay)
 
-    def run_threaded(self, img_arr=None):
-        self.img_arr = img_arr
-        return self.angle, self.throttle, self.mode, self.recording
+    def run_threaded(self, mode=None, vehicle_armed=None, img_arr=None, annoted_img=None):
+        self.mode = mode
+        self.vehicle_armed = vehicle_armed
+        if (annoted_img is not None):
+            self.img_arr = annoted_img
+        else:
+            self.img_arr = img_arr
+        dk.perfmon.LogEvent('TXCtrl-Poll')
+        return self.angle, self.throttle, self.recording, self.ch5, self.ch6, self.speedometer
 
-    def run(self, img_arr=None):
+    def run(self, img_arr=None, img_annoted=None):
         raise Exception("We expect for this part to be run with the threaded=True argument.")
         return False
 
@@ -184,3 +227,6 @@ class TxController(object):
         self.running = False
         time.sleep(0.5)
 
+    def gracefull_shutdown(self):
+        self.tx.ledStatus('init')
+       
