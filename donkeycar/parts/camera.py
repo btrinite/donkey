@@ -128,31 +128,33 @@ class Webcam(BaseCamera):
         self.p = Process(target=self.update_process, args=())
         self.p.start()
 
-    def update_process(self)
-        start = datetime.now()
-
-        with dk.perfmon.TaskDuration('WebCam') as m:
-            self.perflogger.LogCycle()
-            ret, snapshot = self.cam.read()
-        self.logger.debug("New image acquired")
-        if ret:
-            self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
-            # We don't need anymore this resizing, we configure the right resolution in the WebCam
-            #self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
-
-        stop = datetime.now()
-        s = 1 / self.framerate - (stop - start).total_seconds()
-        if s > 0:
-            time.sleep(s)
-
-
-    def update(self):
+    def update_process(self):
         from datetime import datetime, timedelta
 
         while self.on:
-            time.sleep(0.01)
-#            self.update_process()
+            start = datetime.now()
+
+            with dk.perfmon.TaskDuration('WebCam') as m:
+                self.perflogger.LogCycle()
+                ret, snapshot = self.cam.read()
+            self.logger.debug("New image acquired")
+            if ret:
+                self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
+                # We don't need anymore this resizing, we configure the right resolution in the WebCam
+                #self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+
+            stop = datetime.now()
+            s = 1 / self.framerate - (stop - start).total_seconds()
+            if s > 0:
+                time.sleep(s)
         self.cam.release()
+
+
+    def update(self):
+
+        while self.on:
+            time.sleep(0.01)
+#       self.update_process()
 
     def run_threaded(self):
         dk.perfmon.LogEvent('WebCam-Poll')
