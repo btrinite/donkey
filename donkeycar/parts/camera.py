@@ -146,7 +146,8 @@ class Webcam(BaseCamera):
                     self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
                 else:
                     self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
-                child_p.send(self.frame)
+                if (child_p !=None):
+                    child_p.send(self.frame)
 
             stop = datetime.now()
             s = 1 / self.framerate - (stop - start).total_seconds()
@@ -157,8 +158,11 @@ class Webcam(BaseCamera):
 
     def update(self):
 
-        while self.on:
-            self.frame=self.parent_p.recv()
+        if (myConfig['CAMERA']['PREPROCESSING_THREAD']==1):
+            while self.on:
+                self.frame=self.parent_p.recv()
+        else:
+            self.update_process(None)
 
     def run_threaded(self):
         dk.perfmon.LogEvent('WebCam-Poll')

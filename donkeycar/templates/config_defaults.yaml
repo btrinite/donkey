@@ -32,6 +32,7 @@ MODEL:
 
 CAMERA:
   POSTFIX_SCRIPT: "/home/pi/setCam.sh"
+  PREPROCESSING_THREAD: 0
   RESIZE: 1
 
 
