@@ -1,6 +1,6 @@
 import os
 import time
-from multiprocessing import Process, Pipe
+from multiprocessing import cpu_count, Process, Pipe
 import numpy as np
 from PIL import Image
 import glob
@@ -102,6 +102,7 @@ class Webcam(BaseCamera):
         self.frame = None
         self.on = True
         self.perflogger = dk.perfmon.TaskCycle('WebCam')
+        self.logger.info('cpu_count() return '+str(cpu_count()))
         self.logger.info('WebcamVideoStream loaded.. .warming camera')
 
         time.sleep(2)
