@@ -17,6 +17,7 @@ import numpy as np
 import keras
 from keras.models import model_from_json
 from keras.layers.merge import concatenate
+from keras import backend as K
 
 
 import donkeycar as dk
@@ -88,6 +89,12 @@ class KerasCategorical(KerasPilot):
             self.model = model
         else:
             self.model = default_categorical()
+        session_conf = tf.ConfigProto(
+        intra_op_parallelism_threads=2,
+        inter_op_parallelism_threads=2)
+        self.sess = tf.Session(config=session_conf)
+        K.set_session(self.sess)
+
         
     def run(self, img_arr):
         img_arr = img_arr.reshape((1,) + img_arr.shape)
