@@ -126,7 +126,7 @@ class Webcam(BaseCamera):
         self.logger.info("Camera Auto Exp :"+str(self.cam.get(cv2.CAP_PROP_AUTO_EXPOSURE)))
 
         self.parent_p, self.child_p = Pipe()
-        self.p = Process(target=self.update_process, args=(self.child_p))
+        self.p = Process(target=self.update_process, args=(self.child_p,))
         self.p.start()
 
     def update_process(self, child_p):
