@@ -1,6 +1,6 @@
 import os
 import time
-from multiprocessing import Process
+from multiprocessing import Process, Pipe
 import numpy as np
 from PIL import Image
 import glob
@@ -125,10 +125,11 @@ class Webcam(BaseCamera):
         self.logger.info("Camera Exp :"+str(self.cam.get(cv2.CAP_PROP_EXPOSURE)))
         self.logger.info("Camera Auto Exp :"+str(self.cam.get(cv2.CAP_PROP_AUTO_EXPOSURE)))
 
-        self.p = Process(target=self.update_process, args=())
+        self.parent_p, self.child_p = Pipe()
+        self.p = Process(target=self.update_process, args=(self.child_p))
         self.p.start()
 
-    def update_process(self):
+    def update_process(self, child_p):
         from datetime import datetime, timedelta
 
         while self.on:
@@ -141,6 +142,7 @@ class Webcam(BaseCamera):
             if ret:
                 snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
                 self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+                child_p.send(self.frame)
 
             stop = datetime.now()
             s = 1 / self.framerate - (stop - start).total_seconds()
@@ -152,8 +154,7 @@ class Webcam(BaseCamera):
     def update(self):
 
         while self.on:
-            time.sleep(0.01)
-#       self.update_process()
+            self.frame=self.parent_p.recv()
 
     def run_threaded(self):
         dk.perfmon.LogEvent('WebCam-Poll')
