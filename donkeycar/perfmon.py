@@ -111,6 +111,12 @@ class PerfReportManager:
                 myfile.write("Duration Timing for parts : {}\n".format(part))
                 for line in  graph.graph(part, sorted_distriDuration):
                     myfile.write("{}\n".format(line.encode('ascii','ignore').decode('utf-8')))
+                totalDur=0
+                totalNb=0
+                for measure in sorted_distriDuration.items():
+                    totalDur=totalDur+(measure[0]*measure[1])
+                    totalNb=totalNb+measure[1]
+                myfile.write("Averazge {} events/s\n".format(totalDur/totalNb))
                 #self.logger.info(line.encode('ascii','ignore').decode('utf-8'))
             for part in distriCycle:
                 sorted_distriCycle = self.getSortedCycle(part)
