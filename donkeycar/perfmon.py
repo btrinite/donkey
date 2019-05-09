@@ -113,7 +113,7 @@ class PerfReportManager:
                     myfile.write("{}\n".format(line.encode('ascii','ignore').decode('utf-8')))
                 totalDur=0
                 totalNb=0
-                for measure in sorted_distriDuration.items():
+                for measure in distriDuration[part].items():
                     totalDur=totalDur+(measure[0]*measure[1])
                     totalNb=totalNb+measure[1]
                 myfile.write("Averazge {} events/s\n".format(totalDur/totalNb))
