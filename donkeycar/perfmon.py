@@ -130,7 +130,7 @@ class PerfReportManager:
                 for measure in distriCycle[part].items():
                     totalDur=totalDur+(measure[0]*measure[1])
                     totalNb=totalNb+measure[1]
-                myfile.write("Averazge {} events/s\n".format(totalDur/totalNb))
+                myfile.write("Averazge {} events/s\n".format(1000/(totalDur/totalNb)))
         myfile.close()
         with  open(myConfig['DEBUG']['PARTS']['TRACER']['FILE'], "a+") as myfile:
             myfile.write("----------------------- {}\n".format(context))
