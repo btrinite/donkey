@@ -64,13 +64,13 @@ class Txserial():
             self.ser = serial.Serial(
 
                 port=myConfig['TX']['TX_SERIAL'],
-                baudrate = 115200,
+                baudrate = myConfig['TX']['TX_SERIAL_SPEED'],
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
                 timeout=1
             )
-            self.logger.info('/dev/serial0 initialized') 
+            self.logger.info('{} initialized'.format(myConfig['TX']['TX_SERIAL'])) 
             self.ledStatus("init")       
 
         except:
