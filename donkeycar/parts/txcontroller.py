@@ -54,6 +54,9 @@ class Txserial():
         self.lastLocalTs = 0
         self.lastDistTs = 0
         self.logger = logger
+        self.status="-"
+        self.th_pulse=1500
+        self.st_pulse=1500
 
     def init(self):
         # Open serial link
@@ -90,9 +93,6 @@ class Txserial():
         ts = 0
         speedometer = 0
         msg=""
-        status="-"
-        th_pulse=1500
-        st_pulse=1500
 
         if (Txserial.counter%10 == 0):
             if (vehicle_armed==None or vehicle_armed==False):
@@ -131,7 +131,8 @@ class Txserial():
             self.ser.write(cmd.encode)
 
     def ledStatus (self, status):
-        if (status!=None)
+        if (status!=None):
+            self.status=status
             self.send_cmd()
     
     def set_pulse(self, pulse, pulse_ch=0):
@@ -240,7 +241,7 @@ class TxController(object):
     def set_pulse(self, pulse, pulse_ch=0):
         if (self.tx != None):
             self.tx.set_pulse (pulse, pulse_ch)
-            
+
     def shutdown(self):
         self.running = False
         time.sleep(0.5)
