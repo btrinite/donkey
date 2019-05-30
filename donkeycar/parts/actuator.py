@@ -37,7 +37,7 @@ class PWMSteering:
     LEFT_ANGLE = -1 
     RIGHT_ANGLE = 1
 
-    def __init__(self, controller=None)
+    def __init__(self, controller=None):
 
         self.logger = logging.getLogger(myConfig['DEBUG']['PARTS']['ACT-STEERING']['NAME'])
         self.logger.setLevel(myConfig['DEBUG']['PARTS']['ACT-STEERING']['LEVEL'])
