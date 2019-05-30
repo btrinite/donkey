@@ -87,10 +87,12 @@ class Txserial():
         throttle_tx = 0
         ch5_tx = 0
         ch6_tx = 0
-        freq_tx = 60
         ts = 0
         speedometer = 0
         msg=""
+        status="-"
+        th_pulse=1500
+        st_pulse=1500
 
         if (Txserial.counter%10 == 0):
             if (vehicle_armed==None or vehicle_armed==False):
@@ -104,7 +106,7 @@ class Txserial():
                 self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
                 self.ser.reset_input_buffer()
             msg=self.ser.readline().decode('utf-8')
-            ts, steering_tx, throttle_tx, ch5_tx, ch6_tx, speedometer, freq_tx = map(int,msg.split(','))
+            ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer = map(int,msg.split(','))
 
         except:
             self.logger.debug('poll: Exception while parsing msg')
@@ -121,13 +123,25 @@ class Txserial():
         self.logger.debug('poll: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f}'.format(ts, steering_tx, throttle_tx, speedometer))
 
 
-        return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, freq_tx, 
+        return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, 
+
+    def send_cmd (self):
+        cmd='{},{},{}'.format (self.th_pulse, self.st_pulse, self.status)
+        if (self.ser != None):
+            self.ser.write(cmd.encode)
 
     def ledStatus (self, status):
-        if (status!=None):
-            status = status + "\n"
-            if (self.ser != None):
-                self.ser.write(status.encode())    
+        if (status!=None)
+            self.send_cmd()
+    
+    def set_pulse(self, pulse, pulse_ch=0):
+        if (pulse_ch=0):
+            self.th_pulse = pulse
+        if (pulse_ch=1):
+            self.st_pulse = pulse
+
+        self.send_cmd()
+
    
 
 class TxController(object):
@@ -186,7 +200,7 @@ class TxController(object):
             time.sleep(5)
 
         while self.running:
-            throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, freq_tx = self.tx.poll(self.mode, self.vehicle_armed)
+            throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer = self.tx.poll(self.mode, self.vehicle_armed)
             if throttle_tx > myConfig['TX']['TX_THROTTLE_TRESH']:
                 self.throttle = map_range(throttle_tx, myConfig['TX']['TX_THROTTLE_MIN'], myConfig['TX']['TX_THROTTLE_MAX'], -1, 1)
             else:
@@ -223,10 +237,16 @@ class TxController(object):
         raise Exception("We expect for this part to be run with the threaded=True argument.")
         return False
 
+    def set_pulse(self, pulse, pulse_ch=0):
+        if (self.tx != None):
+            self.tx.set_pulse (pulse, pulse_ch)
+            
     def shutdown(self):
         self.running = False
         time.sleep(0.5)
 
     def gracefull_shutdown(self):
         self.tx.ledStatus('init')
+
+
        
