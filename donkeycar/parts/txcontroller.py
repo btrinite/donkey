@@ -136,9 +136,9 @@ class Txserial():
             self.send_cmd()
     
     def set_pulse(self, pulse, pulse_ch=0):
-        if (pulse_ch=0):
+        if (pulse_ch==0):
             self.th_pulse = pulse
-        if (pulse_ch=1):
+        if (pulse_ch==1):
             self.st_pulse = pulse
 
         self.send_cmd()

@@ -58,7 +58,7 @@ class PWMSteering:
         self.logger.debug('Output angle pulse= {:03.0f}'.format(pulse))
         dk.perfmon.LogEvent('ActuatorSteering-setPulse')
         self.perflogger.LogCycle()
-        self.controller.set_pulse(pulse)
+        self.controller.set_pulse(pulse, 1)
 
     def shutdown(self):
         self.run(0) #set steering straight
@@ -81,7 +81,7 @@ class PWMThrottle:
         self.kick = []
         #send zero pulse to calibrate ESC
         self.controller = controller
-        self.controller.set_pulse(myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM'])
+        self.controller.set_pulse(myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM'], 0)
         self.fullspeed_hysteresis = 0
         self.brake_hysteresis = 0
         self.perflogger = dk.perfmon.TaskCycle('ThrottleOutput')
@@ -162,15 +162,15 @@ class PWMThrottle:
         dk.perfmon.LogEvent('ActuatorThrottle-setPulse')
         self.perflogger.LogCycle()
         if (vehicle_armed == True or myConfig['ACTUATOR']['USE_ARM_LOGIC']==0):
-            self.controller.set_pulse(pulse)
+            self.controller.set_pulse(pulse, 0)
         else:
-            self.controller.set_pulse(1500)
+            self.controller.set_pulse(1500, 0)
         
     def shutdown(self):
-        self.controller.set_pulse(0) #stop vehicle
+        self.controller.set_pulse(1500, 0) #stop vehicle
 
     def gracefull_shutdown(self):
-        self.controller.set_pulse(0) #stop vehicle
+        self.controller.set_pulse(1500, 0) #stop vehicle
 
 
 
