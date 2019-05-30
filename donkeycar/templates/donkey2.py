@@ -248,9 +248,7 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
         else:
             steering_controller = PCA9685(channel=cfg.STEERING_CHANNEL, busnum=cfg.STEERING_I2C_BUS)
 
-        steering = PWMSteering(controller=steering_controller,
-                            left_pulse=cfg.STEERING_LEFT_PWM,
-                            right_pulse=cfg.STEERING_RIGHT_PWM)
+        steering = PWMSteering(controller=steering_controller)
 
         if myConfig['ACTUATOR']['ACTUATOR_CTRL_SERIAL']==1:
             throttle_controller = ctr

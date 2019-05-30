@@ -37,15 +37,13 @@ class PWMSteering:
     LEFT_ANGLE = -1 
     RIGHT_ANGLE = 1
 
-    def __init__(self, controller=None,
-                       left_pulse=290,
-                       right_pulse=490):
+    def __init__(self, controller=None)
 
         self.logger = logging.getLogger(myConfig['DEBUG']['PARTS']['ACT-STEERING']['NAME'])
         self.logger.setLevel(myConfig['DEBUG']['PARTS']['ACT-STEERING']['LEVEL'])
         self.controller = controller
-        self.left_pulse = left_pulse
-        self.right_pulse = right_pulse
+        self.left_pulse = myConfig['ACTUATOR']['STEERING_LEFT_PULSE']
+        self.right_pulse = myConfig['ACTUATOR']['STEERING_RIGHT_PULSE']
         self.perflogger = dk.perfmon.TaskCycle('SteeringOutput')
 
     def run(self, angle):
