@@ -116,6 +116,7 @@ class Txserial():
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
             return 0,1500,0,0,0
+
         if (ts-self.lastDistTs < 2*(now-self.lastLocalTs)):
             self.logger.debug('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
         self.lastLocalTs = now
@@ -128,6 +129,7 @@ class Txserial():
     def send_cmd (self):
         cmd='{},{},{}\n'.format (self.th_pulse, self.st_pulse, self.status)
         if (self.ser != None):
+            self.logger.debug('Command sent : {} '.format(cmd))
             self.ser.write(cmd.encode())
 
     def ledStatus (self, status):
