@@ -115,7 +115,7 @@ class Txserial():
         self.logger.debug('poll: {} {}'.format(msg.strip(),len(msg)))
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
-            return 0,1500,0,0,60
+            return 0,1500,0,0,0
         if (ts-self.lastDistTs < 2*(now-self.lastLocalTs)):
             self.logger.debug('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
         self.lastLocalTs = now
@@ -126,7 +126,7 @@ class Txserial():
         return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, 
 
     def send_cmd (self):
-        cmd='{},{},{}'.format (self.th_pulse, self.st_pulse, self.status)
+        cmd='{},{},{}\n'.format (self.th_pulse, self.st_pulse, self.status)
         if (self.ser != None):
             self.ser.write(cmd.encode())
 
