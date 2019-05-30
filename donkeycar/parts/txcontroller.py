@@ -128,7 +128,7 @@ class Txserial():
     def send_cmd (self):
         cmd='{},{},{}'.format (self.th_pulse, self.st_pulse, self.status)
         if (self.ser != None):
-            self.ser.write(cmd.encode)
+            self.ser.write(cmd.encode())
 
     def ledStatus (self, status):
         if (status!=None):
