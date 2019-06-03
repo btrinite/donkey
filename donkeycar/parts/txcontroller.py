@@ -105,18 +105,21 @@ class Txserial():
             if self.ser.in_waiting > 50:
                 self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
                 self.ser.reset_input_buffer()
-            while(true):
-                msg=self.ser.readline().decode('utf-8')
+            while(True):
+                msg=self.ser.readline().decode('utf-8').strip()
                 if ("dbg:" in msg):
-                    self.logger.debug('dbg msg esp: {}'.format(msg.strip()))
+                    self.logger.debug('dbg msg esp: {}'.format(msg)
                 else:
                     ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer = map(int,msg.split(','))
                     break
         except:
             self.logger.debug('poll: Exception while parsing msg')
+            print ('-'*60)
+            traceback.print_exc(file=sys.stdout)
+            print ('-'*60)
 
         now=time.clock()*1000
-        self.logger.debug('poll: {} {}'.format(msg.strip(),len(msg)))
+        self.logger.debug('poll: {} {}'.format(msg,len(msg)))
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
             return 1500,1500,0,0,0
