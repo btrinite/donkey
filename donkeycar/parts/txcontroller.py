@@ -108,7 +108,7 @@ class Txserial():
             while(True):
                 msg=self.ser.readline().decode('utf-8').strip()
                 if ("dbg:" in msg):
-                    self.logger.debug('dbg msg esp: {}'.format(msg)
+                    self.logger.debug('dbg msg esp: {}'.format(msg))
                 else:
                     ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer = map(int,msg.split(','))
                     break
