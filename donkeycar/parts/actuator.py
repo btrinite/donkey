@@ -163,20 +163,30 @@ class PWMThrottle:
             self.logger.debug('Closeup: Sensor fusion :'+str(rng))
 
             if (self.closeup_state == 0 and rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
+                #In normal state, no object detected ahead, regular speed
                 pulse=myConfig['ACTUATOR']['THROTTLE_KICK_PULSE']
 
             if (self.closeup_state == 0 and rng>myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
+                #In normal state, object detected ahead, slowdown
                 self.logger.debug('Closeup: Switch to state 1')
                 self.closeup_state=1
 
             if (self.closeup_state==1):
-                if (rng<myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
+                if (rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
+                    #In slow state, use min speed
                     pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
+                    if (rng(<=myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']-myConfig['ACTUATOR']['CHALLENGE_TRESH_STATE'])):
+                        #In slow state, no more object detected ahead, switch back to normal state
+                        self.logger.debug('Closeup: Switch to state 0')
+                        self.closeup_state=0
+
                 else:
+                    #In slow state, very close to object ahead, switch to mode 2 
                     self.logger.debug('Closeup: Switch to state 2')
                     self.closeup_state=2
     
             if (self.closeup_state==2):
+                #In stop state, stop car
                 pulse=myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM']
 
             self.logger.debug('Closeup: state :'+str(self.closeup_state))
