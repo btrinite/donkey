@@ -170,7 +170,7 @@ class PWMThrottle:
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
             else:
                 self.closeup_state=3
-                pulse=THROTTLE_STOPPED_PWM
+                pulse=myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM']
             self.logger.debug('Closeup: state :'+str(self.closeup_state))
             
         self.logger.debug('Output throttle pulse= {:03.0f}'.format(pulse))
