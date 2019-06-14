@@ -175,7 +175,7 @@ class PWMThrottle:
                 else:
                     self.logger.debug('Closeup: Switch to state 2')
                     self.closeup_state=2
-            }
+    
             if (self.closeup_state==2):
                 pulse=myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM']
 
