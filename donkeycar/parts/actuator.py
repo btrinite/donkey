@@ -168,7 +168,7 @@ class PWMThrottle:
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
             if (closeup_state==1 and rng<CHALLENGE_TRESH_STOP):
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
-            else
+            else:
                 self.closeup_state=3
                 pulse=THROTTLE_STOPPED_PWM
             self.logger.debug('Closeup: state :'+str(self.closeup_state))
