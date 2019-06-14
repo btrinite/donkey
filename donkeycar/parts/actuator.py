@@ -161,18 +161,24 @@ class PWMThrottle:
         if myConfig['ACTUATOR']['CHALLENGE_CLOSEUP']==1:
             rng = max(sensor_left, sensor_right)
             self.logger.debug('Closeup: Sensor fusion :'+str(rng))
+
             if (self.closeup_state == 0 and rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
                 pulse=myConfig['ACTUATOR']['THROTTLE_KICK_PULSE']
+
             if (self.closeup_state == 0 and rng>myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
                 self.logger.debug('Closeup: Switch to state 1')
                 self.closeup_state=1
-                pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
-            if (self.closeup_state==1 and rng<myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
-                pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
-            else:
-                self.logger.debug('Closeup: Switch to state 2')
-                self.closeup_state=2
+
+            if (self.closeup_state==1):
+                if (rng<myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
+                    pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
+                else:
+                    self.logger.debug('Closeup: Switch to state 2')
+                    self.closeup_state=2
+            }
+            if (self.closeup_state==2):
                 pulse=myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM']
+
             self.logger.debug('Closeup: state :'+str(self.closeup_state))
             
         self.logger.debug('Output throttle pulse= {:03.0f}'.format(pulse))
