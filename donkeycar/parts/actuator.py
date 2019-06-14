@@ -82,7 +82,7 @@ class PWMThrottle:
         self.controller.set_pulse(myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM'], 0)
         self.fullspeed_hysteresis = 0
         self.brake_hysteresis = 0
-        self.closeup_state = 0;
+        self.closeup_state = 0
         self.perflogger = dk.perfmon.TaskCycle('ThrottleOutput')
         time.sleep(1)
 
@@ -164,12 +164,14 @@ class PWMThrottle:
             if (self.closeup_state == 0 and rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
                 pulse=myConfig['ACTUATOR']['THROTTLE_KICK_PULSE']
             if (self.closeup_state == 0 and rng>myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
+                self.logger.debug('Closeup: Switch to state 1')
                 self.closeup_state=1
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
             if (self.closeup_state==1 and rng<myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
             else:
-                self.closeup_state=3
+                self.logger.debug('Closeup: Switch to state 2')
+                self.closeup_state=2
                 pulse=myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM']
             self.logger.debug('Closeup: state :'+str(self.closeup_state))
             
