@@ -82,6 +82,7 @@ class PWMThrottle:
         self.controller.set_pulse(myConfig['ACTUATOR']['THROTTLE_STOPPED_PWM'], 0)
         self.fullspeed_hysteresis = 0
         self.brake_hysteresis = 0
+        self.closeup_state = 0;
         self.perflogger = dk.perfmon.TaskCycle('ThrottleOutput')
         time.sleep(1)
 
@@ -89,11 +90,12 @@ class PWMThrottle:
         self.kick = [myConfig['ACTUATOR']['THROTTLE_KICK_PULSE']]*myConfig['ACTUATOR']['THROTTLE_KICK_LENGTH']
         self.logger.debug('Kicker reloaded')
 
-    def run(self, throttle, mode=None, vehicle_armed=None, fullspeed=None, brake=None):
+    def run(self, throttle, mode=None, vehicle_armed=None, fullspeed=None, brake=None, sensor_left=None, sensor_right=None):
 
         global myConfig
 
         if self.mode == "user" and mode != "user":
+            self.closeup_state=0
             self.reloadKick()
 
         if (self.mode != "user" and mode == "user"):
@@ -152,10 +154,25 @@ class PWMThrottle:
                 self.reloadKick()
             
         if (self.fullspeed_hysteresis>0):
-            self.logger.debug('Appluy fullspeed for next '+str(self.fullspeed_hysteresis-1)+' cycle')
+            self.logger.debug('Apply fullspeed for next '+str(self.fullspeed_hysteresis-1)+' cycle')
             pulse = myConfig['ACTUATOR']['THROTTLE_FULLSPEED_PULSE']
             self.fullspeed_hysteresis -= 1
 
+        if myConfig['ACTUATOR']['CHALLENGE_CLOSEUP']==1:
+            rng = max(sensor_left, sensor_right)
+            self.logger.debug('Closeup: Sensor fusion :'+str(range))
+            if (self.closeup_state == 0 and rng<=CHALLENGE_TRESH_SLOW):
+                pulse=myConfig['ACTUATOR']['THROTTLE_KICK_PULSE']
+            if (closeup_state == 0 and rng>CHALLENGE_TRESH_SLOW):
+                self.closeup_state=1
+                pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
+            if (closeup_state==1 and rng<CHALLENGE_TRESH_STOP):
+                pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
+            else
+                self.closeup_state=3
+                pulse=THROTTLE_STOPPED_PWM
+            self.logger.debug('Closeup: state :'+str(self.closeup_state))
+            
         self.logger.debug('Output throttle pulse= {:03.0f}'.format(pulse))
         dk.perfmon.LogEvent('ActuatorThrottle-setPulse')
         self.perflogger.LogCycle()

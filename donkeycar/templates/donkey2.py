@@ -134,7 +134,7 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
                            )
         V.add(ctr,
               inputs=['user/mode', 'vehicle_armed', 'cam/image_array', 'pilot/annoted_img'],
-              outputs=['user/angle', 'user/throttle', 'recording', 'ch5', 'ch6', 'speedometer'],
+              outputs=['user/angle', 'user/throttle', 'recording', 'ch5', 'ch6', 'speedometer', 'sensor_left', 'sensor_right'],
               threaded=True)
 
         actionctr = TxAuxCh()
@@ -258,7 +258,7 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
         throttle = PWMThrottle(controller=throttle_controller)
 
         V.add(steering, inputs=['angle'])
-        V.add(throttle, inputs=['throttle', 'user/mode', 'vehicle_armed', 'pilot/fullspeed', 'pilot/brake'])
+        V.add(throttle, inputs=['throttle', 'user/mode', 'vehicle_armed', 'pilot/fullspeed', 'pilot/brake', 'sensor_left', 'sensor_right'])
 
     if cfg.BATTERY_USE_MONITOR:
         logger.info("Init Battery Monitor part")

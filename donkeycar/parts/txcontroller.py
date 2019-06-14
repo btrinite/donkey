@@ -92,6 +92,8 @@ class Txserial():
         ch6_tx = 0
         ts = 0
         speedometer = 0
+        sensor_left = 0
+        sensor_right = 0
         msg=""
 
         if (Txserial.counter%10 == 0):
@@ -110,7 +112,7 @@ class Txserial():
                 if ("dbg:" in msg):
                     self.logger.debug('dbg msg esp: {}'.format(msg))
                 else:
-                    ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer = map(int,msg.split(','))
+                    ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int,msg.split(','))
                     break
         except:
             self.logger.debug('poll: Exception while parsing msg')
@@ -128,10 +130,10 @@ class Txserial():
             self.logger.debug('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
         self.lastLocalTs = now
         self.lastDistTs = ts
-        self.logger.debug('poll: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f}'.format(ts, steering_tx, throttle_tx, speedometer))
+        self.logger.debug('poll: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, speedometer, sensor_left, sensor_right))
 
 
-        return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, 
+        return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right
 
     def send_cmd (self):
         cmd='{},{},{}\n'.format (self.th_pulse, self.st_pulse, self.status)
@@ -174,6 +176,8 @@ class TxController(object):
         self.speedometer = 0
         self.ch5 = False
         self.ch6 = False
+        self.sensor_left = 0
+        self.sensor_right = 0
         self.recording = False
         self.auto_record_on_throttle = auto_record_on_throttle
         self.tx = None
@@ -210,7 +214,7 @@ class TxController(object):
             time.sleep(5)
 
         while self.running:
-            throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer = self.tx.poll(self.mode, self.vehicle_armed)
+            throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = self.tx.poll(self.mode, self.vehicle_armed)
             if throttle_tx > myConfig['TX']['TX_THROTTLE_TRESH']:
                 self.throttle = map_range(throttle_tx, myConfig['TX']['TX_THROTTLE_MIN'], myConfig['TX']['TX_THROTTLE_MAX'], -1, 1)
             else:
@@ -218,6 +222,8 @@ class TxController(object):
             self.on_throttle_changes()
             self.angle = 0-map_range(steering_tx, myConfig['TX']['TX_STEERING_MIN'], myConfig['TX']['TX_STEERING_MAX'], -1, 1)
             self.speedometer = 1-map_range(speedometer,myConfig['TX']['TX_SPEEDOMETER_MIN'], myConfig['TX']['TX_SPEEDOMETER_MAX'], 0, 1)
+            self.sensor_left = sensor_left
+            self.sensor_right = sensor_right
             if (ch5_tx > myConfig['TX']['TX_CH_AUX_TRESH']+100):
                 self.ch5 = True
 
@@ -241,7 +247,7 @@ class TxController(object):
         else:
             self.img_arr = img_arr
         dk.perfmon.LogEvent('TXCtrl-Poll')
-        return self.angle, self.throttle, self.recording, self.ch5, self.ch6, self.speedometer
+        return self.angle, self.throttle, self.recording, self.ch5, self.ch6, self.speedometer, self.sensor_left, self.sensor_right
 
     def run(self, img_arr=None, img_annoted=None):
         raise Exception("We expect for this part to be run with the threaded=True argument.")
