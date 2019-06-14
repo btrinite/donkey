@@ -161,12 +161,12 @@ class PWMThrottle:
         if myConfig['ACTUATOR']['CHALLENGE_CLOSEUP']==1:
             rng = max(sensor_left, sensor_right)
             self.logger.debug('Closeup: Sensor fusion :'+str(range))
-            if (self.closeup_state == 0 and rng<=CHALLENGE_TRESH_SLOW):
+            if (self.closeup_state == 0 and rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
                 pulse=myConfig['ACTUATOR']['THROTTLE_KICK_PULSE']
             if (closeup_state == 0 and rng>CHALLENGE_TRESH_SLOW):
                 self.closeup_state=1
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
-            if (closeup_state==1 and rng<CHALLENGE_TRESH_STOP):
+            if (closeup_state==1 and rng<myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
                 pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
             else:
                 self.closeup_state=3
