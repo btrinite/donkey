@@ -100,6 +100,7 @@ class PWMThrottle:
 
         if (self.mode != "user" and mode == "user"):
             self.brake_hysteresis = myConfig['ACTUATOR']['BRAKE_HYSTERESIS_LENGTH']
+            self.closeup_state=0
 
         self.mode = mode
 
