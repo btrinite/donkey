@@ -175,7 +175,7 @@ class PWMThrottle:
                 if (rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']):
                     #In slow state, use min speed
                     pulse=myConfig['ACTUATOR']['THROTTLE_MIN_SPD_PULSE']
-                    if (rng(<=myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']-myConfig['ACTUATOR']['CHALLENGE_TRESH_STATE'])):
+                    if (rng<=(myConfig['ACTUATOR']['CHALLENGE_TRESH_STOP']-myConfig['ACTUATOR']['CHALLENGE_TRESH_STATE'])):
                         #In slow state, no more object detected ahead, switch back to normal state
                         self.logger.debug('Closeup: Switch to state 0')
                         self.closeup_state=0
