@@ -159,7 +159,8 @@ class PWMThrottle:
             self.fullspeed_hysteresis -= 1
 
         if myConfig['ACTUATOR']['CHALLENGE_CLOSEUP']==1:
-            rng = max(sensor_left, sensor_right)
+            #rng = max(sensor_left, sensor_right)
+            rng = (sensor_left + sensor_right)/2.0
             self.logger.debug('Closeup: Sensor fusion :'+str(rng))
 
             if (self.closeup_state == 0 and rng<=myConfig['ACTUATOR']['CHALLENGE_TRESH_SLOW']):
