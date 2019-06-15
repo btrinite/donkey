@@ -159,7 +159,7 @@ class PWMThrottle:
             pulse = myConfig['ACTUATOR']['THROTTLE_FULLSPEED_PULSE']
             self.fullspeed_hysteresis -= 1
 
-        if myConfig['ACTUATOR']['CHALLENGE_CLOSEUP']==1:
+        if (myConfig['ACTUATOR']['CHALLENGE_CLOSEUP']==1 and self.mode != "user"):
             #rng = max(sensor_left, sensor_right)
             rng = (sensor_left + sensor_right)/2.0
             self.logger.debug('Closeup: Sensor fusion :'+str(rng))
