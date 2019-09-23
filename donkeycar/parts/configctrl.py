@@ -42,6 +42,7 @@ class ConfigFile(FileSystemEventHandler):
 
     def reload(self):
         global myConfig
+        print (self.configPath)
         with open(os.path.join (self.configPath, "config.yaml"), 'r') as ymlfile:
             myConfig.update(yaml.load(ymlfile))
             for section in myConfig:
@@ -80,6 +81,7 @@ class ConfigController(object):
                  verbose = False
                  ):
 
+        print ("Init ConfigController")
         self.verbose = verbose
         self.configPath = configPath
         self.c = ConfigFile (self.configPath)

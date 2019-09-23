@@ -103,6 +103,9 @@ class Txserial():
                 self.ledStatus(mode)       
         Txserial.counter += 1
 
+        if (self.ser == None):
+            self.init()
+
         try:
             if self.ser.in_waiting > 50:
                 self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
@@ -114,11 +117,11 @@ class Txserial():
                 else:
                     ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int,msg.split(','))
                     break
-        except:
-            self.logger.debug('poll: Exception while parsing msg')
-            print ('-'*60)
-            traceback.print_exc(file=sys.stdout)
-            print ('-'*60)
+        except Exception as e:
+            self.logger.info('poll: Exception while parsing msg'+str(e))
+            self.ser.close()
+            self.ser = None
+            self.logger.info('port Closed')
 
         now=time.clock()*1000
         self.logger.debug('poll: {} {}'.format(msg,len(msg)))
