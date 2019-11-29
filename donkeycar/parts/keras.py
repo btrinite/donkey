@@ -32,7 +32,7 @@ def histEqual(img):
     return hist_equalization_result
 
 def postprocess_img(img):
-    treatments = myConfig['MODEL']['PREPROCESS'].split('+')
+    treatments = myConfig['MODEL']['PREDICT_PREPROCESS'].split('+')
     for treatment in treatments:
         if (treatment == "BLUR"):
             img = cv2.blur(img,(5,5))
