@@ -13,6 +13,43 @@ from donkeycar.parts.configctrl import myConfig, CONFIG2LEVEL
 
 import logging
 
+def histEqual(img):
+    img_to_yuv = cv2.cvtColor(img,cv2.COLOR_BGR2YUV)
+    img_to_yuv[:,:,0] = cv2.equalizeHist(img_to_yuv[:,:,0])
+    hist_equalization_result = cv2.cvtColor(img_to_yuv, cv2.COLOR_YUV2BGR)
+    return hist_equalization_result
+
+def postprocess_img(img):
+    treatments = myConfig['MODEL']['WEBCAM_PREPROCESS'].split('+')
+    for treatment in treatments:
+        if (treatment == "BLUR"):
+            img = cv2.blur(img,(5,5))
+        if (treatment == "HIST"):
+            img = histEqual(img)
+        if (treatment == "SOBELXY"):
+            sobelx = cv2.Sobel(img,cv2.CV_8U,1,0,ksize=3)
+            sobely = cv2.Sobel(img,cv2.CV_8U,0,1,ksize=3)
+            img = cv2.addWeighted(sobelx, 0.5, sobely, 0.5, 0) 
+        if (treatment == "SOBELXYABS"):
+            sobelx64f = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=3)
+            abs_sobelx64f = np.absolute(sobelx64f)
+            sobelx = np.uint8(abs_sobelx64f)
+            sobely64f = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=3)
+            abs_sobely64f = np.absolute(sobely64f)
+            sobely = np.uint8(abs_sobely64f)
+            img = cv2.addWeighted(sobelx, 0.5, sobely, 0.5, 0) 
+        if (treatment == "GAUSBLUR"):
+            ksize = cv2.Size(3, 3);
+            img = cv2.GaussianBlur(img, ksize, 0, 0, cv.BORDER_DEFAULT);
+        if (treatment == "MEDBLUR"):
+            img = cv2.medianBlur(img, 5);
+        if (treatment == "BILAT"):
+            img = cv2.bilateralFilter(img, 9, 75, 75, cv2.BORDER_DEFAULT);
+        if (treatment == "BILAT2"):
+            img = cv2.bilateralFilter(img, 72, 150, 150, cv2.BORDER_DEFAULT);
+    return img
+
+
 class BaseCamera:
 
     def run_threaded(self):
@@ -145,6 +182,8 @@ class Webcam(BaseCamera):
                 if (myConfig['CAMERA']['RESIZE'] == 1):
                     snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
                     self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
+                    self.img_arr = postprocess_img(self.frame)
+
                 else:
                     self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
                 if (child_p !=None):
