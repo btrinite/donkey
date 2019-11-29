@@ -240,7 +240,7 @@ class TxController(object):
             if (ch6_tx < myConfig['TX']['TX_CH_AUX_TRESH']-100):
                 self.ch6 = False
 
-            self.logger.debug('angle= {:01.2f} throttle= {:01.2f} speed= {:01.2f}'.format (self.angle, self.throttle, self.speedometer))
+            self.logger.debug('angle={:01.2f} throttle={:01.2f} speed={:01.2f} ch5={0:d} ch6={0:d}'.format (self.angle, self.throttle, self.speedometer, self.ch5, self.ch6))
             time.sleep(self.poll_delay)
 
     def run_threaded(self, mode=None, vehicle_armed=None, img_arr=None, annoted_img=None):
