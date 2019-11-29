@@ -183,7 +183,7 @@ class Webcam(BaseCamera):
                 if (myConfig['CAMERA']['RESIZE'] == 1):
                     snapshot1 = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
                     self.frame = cv2.resize(snapshot1,(160,120), interpolation = cv2.INTER_AREA)
-                    self.img_arr = postprocess_img(self.frame)
+                    self.frame = postprocess_img(self.frame)
 
                 else:
                     self.frame = cv2.cvtColor(snapshot, cv2.COLOR_BGR2RGB)
