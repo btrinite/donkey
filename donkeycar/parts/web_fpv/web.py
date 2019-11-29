@@ -151,7 +151,8 @@ class TelemetrySource(tornado.web.RequestHandler):
     def publish(self, data):
         """Pushes data to a listener."""
         try:
-            self.write('data: {}\n\n'.format(data))
+            fut = self.write('data: {}\n\n'.format(data))
+            await fut
             yield self.flush()
         except tornado.iostream.StreamClosedError:
             print('tornado.iostream.StreamClosedError')
