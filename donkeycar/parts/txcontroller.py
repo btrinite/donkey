@@ -128,7 +128,7 @@ class Txserial():
         self.logger.debug('poll: {} {}'.format(msg,len(msg)))
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
-            return 1500,1500,0,0,0,0,0
+            return 1500,1500,1300,1300,0,0,0
 
         if (ts-self.lastDistTs < 2*(now-self.lastLocalTs)):
             self.logger.debug('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
