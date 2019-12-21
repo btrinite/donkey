@@ -23,6 +23,8 @@ import tornado.gen
 import logging
 logger = logging.getLogger('donkey.webctrl')
 
+import asyncio
+
 from ... import utils
 
 
@@ -134,6 +136,7 @@ class LocalWebController(tornado.web.Application):
     def update(self, port=8887):
         ''' Start the tornado webserver. '''
         print(port)
+        asyncio.set_event_loop(asyncio.new_event_loop())
         self.port = int(port)
         self.listen(self.port)
         tornado.ioloop.IOLoop.instance().start()
