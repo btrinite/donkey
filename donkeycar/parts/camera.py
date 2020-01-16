@@ -118,6 +118,10 @@ class Webcam(BaseCamera):
         self.logger = logging.getLogger(myConfig['DEBUG']['PARTS']['CAMERA']['NAME'])
         self.logger.setLevel(CONFIG2LEVEL[myConfig['DEBUG']['PARTS']['CAMERA']['LEVEL']])
 
+        if (len(myConfig['CAMERA']['PREFIX_SCRIPT']) > 0):
+            self.logger.info('Prefix setting script called :'+myConfig['CAMERA']['PREFIX_SCRIPT'])
+            os.system(myConfig['CAMERA']['PREFIX_SCRIPT'])      
+
         self.cam = cv2.VideoCapture(0+cv2.CAP_V4L2)
         #self.cam = cv2.VideoCapture(0)
         self.cam.set(cv2.CAP_PROP_FOURCC ,cv2.VideoWriter_fourcc('M', 'J', 'P', 'G') );
@@ -141,11 +145,6 @@ class Webcam(BaseCamera):
         self.on = True
         self.perflogger = dk.perfmon.TaskCycle('WebCam')
         self.logger.info('cpu_count() return '+str(cpu_count()))
-
-        if (len(myConfig['CAMERA']['PREFIX_SCRIPT']) > 0):
-            self.logger.info('Prefix setting script called :'+myConfig['CAMERA']['PREFIX_SCRIPT'])
-            os.system(myConfig['CAMERA']['PREFIX_SCRIPT'])      
-
         self.logger.info('WebcamVideoStream loaded.. .warming camera')
 
         time.sleep(2)
