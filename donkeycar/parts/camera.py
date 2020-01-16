@@ -144,7 +144,8 @@ class Webcam(BaseCamera):
 
         if (len(myConfig['CAMERA']['PREFIX_SCRIPT']) > 0):
             self.logger.info('Prefix setting script called :'+myConfig['CAMERA']['PREFIX_SCRIPT'])
-            os.system(myConfig['CAMERA']['PREFIX_SCRIPT'])             
+            os.system(myConfig['CAMERA']['PREFIX_SCRIPT'])      
+            os.wait()       
 
         self.logger.info('WebcamVideoStream loaded.. .warming camera')
 
@@ -158,7 +159,8 @@ class Webcam(BaseCamera):
 
         if (len(myConfig['CAMERA']['POSTFIX_SCRIPT']) > 0):
             self.logger.info('Postfix setting script called :'+myConfig['CAMERA']['POSTFIX_SCRIPT'])
-            os.system(myConfig['CAMERA']['POSTFIX_SCRIPT'])             
+            os.system(myConfig['CAMERA']['POSTFIX_SCRIPT'])   
+            os.wait()          
 
         check_fps = self.cam.get(cv2.CAP_PROP_FPS)
         self.logger.info("Camera read configuration:")
