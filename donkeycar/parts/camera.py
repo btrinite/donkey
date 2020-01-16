@@ -141,6 +141,11 @@ class Webcam(BaseCamera):
         self.on = True
         self.perflogger = dk.perfmon.TaskCycle('WebCam')
         self.logger.info('cpu_count() return '+str(cpu_count()))
+
+        if (len(myConfig['CAMERA']['PREFIX_SCRIPT']) > 0):
+            self.logger.info('Prefix setting script called :'+myConfig['CAMERA']['PREFIX_SCRIPT'])
+            os.system(myConfig['CAMERA']['PREFIX_SCRIPT'])             
+
         self.logger.info('WebcamVideoStream loaded.. .warming camera')
 
         time.sleep(2)
