@@ -73,8 +73,8 @@ class Txserial():
             self.logger.info('{} initialized'.format(myConfig['TX']['TX_SERIAL'])) 
             self.ledStatus("init")       
 
-       except Exception as e:
-+            self.logger.info('Serial port not initialized '+str(e))
+        except Exception as e:
+           self.logger.info('Serial port not initialized '+str(e))
 
         return True
 
