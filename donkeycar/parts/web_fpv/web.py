@@ -119,21 +119,29 @@ class VideoAPI(tornado.web.RequestHandler):
         self.served_image_timestamp = time.time()
         my_boundary = "--boundarydonotcross"
         while True:
-            
             interval = .1
             if self.served_image_timestamp + interval < time.time():
+                try:
+                    img = utils.arr_to_binary(self.application.img_arr)
 
-
-                img = utils.arr_to_binary(self.application.img_arr)
-
-                self.write(my_boundary)
-                self.write("Content-type: image/jpeg\r\n")
-                self.write("Content-length: %s\r\n\r\n" % len(img)) 
-                self.write(img)
-                self.served_image_timestamp = time.time()
+                    self.write(my_boundary)
+                    self.write("Content-type: image/jpeg\r\n")
+                    self.write("Content-length: %s\r\n\r\n" % len(img)) 
+                    self.write(img)
+                    self.served_image_timestamp = time.time()
+                except tornado.iostream.StreamClosedError as e:
+                    print('StreamClosedError:', e)
+                    break
+                except tornado.websocket.WebSocketClosedError as e:
+                    print('WebSocketClosedError:', self)
+                    break
+                except KeyError as e:
+                    print('KeyError:', e)
+                    break
                 yield tornado.gen.Task(self.flush)
             else:
                 yield tornado.gen.Task(ioloop.add_timeout, ioloop.time() + interval)
+            
 
 class TelemetrySource(tornado.web.RequestHandler):
     """Basic handler for server-sent events."""
