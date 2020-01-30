@@ -112,7 +112,8 @@ class Txserial():
                 self.ser.reset_input_buffer()
             msg=self.ser.readline().decode('utf-8').strip()
             self.logger.debug('dbg msg esp: {}'.format(msg))
-            str_ts, str_throttle_tx, str_steering_tx, str_ch5_tx, str_ch6_tx, str_speedometer, str_sensor_left, str_sensor_right, debug = map(str, msg.split(','))
+            debug = msg.split(',')[-1]
+            ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, msg.rsplit(',', 1)[0])
         except Exception as e:
             self.logger.info('poll: Exception while parsing msg '+str(e))
             if (str(e).startswith("Serial port not initialized")):
@@ -121,15 +122,6 @@ class Txserial():
             	self.logger.info('port Closed')
             else:
                 pass
-
-        ts=int(str_ts)
-        throttle_tx=int(str_throttle_tx)
-        steering_tx=int(str_steering_tx)
-        ch5_tx=int(str_ch5_tx)
-        ch6_tx=int(str_ch6_tx)
-        speedometer=int(str_speedometer)
-        sensor_left=int(str_sensor_left)
-        sensor_right=int(str_sensor_right)
 
         now=time.clock()*1000
         self.logger.debug('poll: {} {}'.format(msg,len(msg)))
