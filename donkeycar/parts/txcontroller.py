@@ -107,15 +107,26 @@ class Txserial():
             self.init()
 
         try:
-            if self.ser.in_waiting > 50:
-                self.logger.debug('poll: Serial buffer underrun {} ... flushing'.format(str(self.ser.in_waiting)))
-                self.ser.reset_input_buffer()
-            msg=self.ser.readline().decode('utf-8').strip()
-            debug = msg.split(',')[-1]
-            txmsg = msg.rsplit(',', 1)[0]
-            self.logger.debug('poll Tx msg {}'.format(txmsg))
-            self.logger.debug('poll Debug msg {}'.format(debug))
-            ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, txmsg.split(','))
+            while (True):
+                if (self.ser.in_waiting<=0):
+                    continue
+                if self.ser.in_waiting > 50:
+                    self.logger.debug('poll: Serial buffer underrun {} ... flushing'.format(str(self.ser.in_waiting)))
+                    self.ser.reset_input_buffer()
+                    continue
+                msg=self.ser.readline().decode('utf-8').strip()
+                if (len(msg))<=0:
+                    continue
+                if (msg.startswith('debug')):
+                    self.logger.debug('poll Debug msg {}'.format(msg))
+                    continue
+                if (msg.startswith('RX,')):
+                    self.logger.debug('poll Tx msg {}'.format(msg))
+                    flag, ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, msg.partition(',')[2].split(','))
+                    
+                else:
+                    continue
+
         except Exception as e:
             self.logger.info('poll: Exception while parsing msg '+str(e))
             if (str(e).startswith("Serial port not initialized")):
