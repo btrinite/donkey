@@ -108,12 +108,13 @@ class Txserial():
 
         try:
             if self.ser.in_waiting > 50:
-                self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
+                self.logger.debug('poll: Serial buffer underrun {} ... flushing'.format(str(self.ser.in_waiting)))
                 self.ser.reset_input_buffer()
             msg=self.ser.readline().decode('utf-8').strip()
             debug = msg.split(',')[-1]
             txmsg = msg.rsplit(',', 1)[0]
-            self.logger.debug('poll Tx msg : Tx {} Debug {}'.format(txmsg,debug))
+            self.logger.debug('poll Tx msg {}'.format(txmsg))
+            self.logger.debug('poll Debug msg {}'.format(debug))
             ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, txmsg.split(','))
         except Exception as e:
             self.logger.info('poll: Exception while parsing msg '+str(e))
@@ -123,17 +124,17 @@ class Txserial():
             	self.logger.info('port Closed')
             else:
                 pass
+        except:
+            pass
 
         now=time.clock()*1000
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
             return 1500,1500,1300,1300,0,0,0
 
-        if (ts-self.lastDistTs < 2*(now-self.lastLocalTs)):
-            self.logger.debug('poll: underun dist {} local {}'.format(ts-self.lastDistTs, now-self.lastLocalTs))
         self.lastLocalTs = now
         self.lastDistTs = ts
-        self.logger.debug('poll: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, speedometer, sensor_left, sensor_right))
+        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, speedometer, sensor_left, sensor_right))
 
 
         return throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right
