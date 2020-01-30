@@ -111,9 +111,10 @@ class Txserial():
                 self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
                 self.ser.reset_input_buffer()
             msg=self.ser.readline().decode('utf-8').strip()
-            self.logger.debug('dbg msg esp: {}'.format(msg))
             debug = msg.split(',')[-1]
-            ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, msg.rsplit(',', 1)[0])
+            txmsg = msg.rsplit(',', 1)[0]
+            self.logger.debug('poll Tx msg : Tx {} Debug {}'.format(txmsg,debug))
+            ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, txmsg.split(','))
         except Exception as e:
             self.logger.info('poll: Exception while parsing msg '+str(e))
             if (str(e).startswith("Serial port not initialized")):
@@ -124,7 +125,6 @@ class Txserial():
                 pass
 
         now=time.clock()*1000
-        self.logger.debug('poll: {} {}'.format(msg,len(msg)))
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
             return 1500,1500,1300,1300,0,0,0
