@@ -110,18 +110,26 @@ class Txserial():
             if self.ser.in_waiting > 50:
                 self.logger.debug('poll: Serial buffer overrun {} ... flushing'.format(str(self.ser.in_waiting)))
                 self.ser.reset_input_buffer()
-            while(True):
-                msg=self.ser.readline().decode('utf-8').strip()
-                if ("dbg:" in msg):
-                    self.logger.debug('dbg msg esp: {}'.format(msg))
-                else:
-                    ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int,msg.split(','))
-                    break
+            msg=self.ser.readline().decode('utf-8').strip()
+            self.logger.debug('dbg msg esp: {}'.format(msg))
+            str_ts, str_throttle_tx, str_steering_tx, str_ch5_tx, str_ch6_tx, str_speedometer, str_sensor_left, str_sensor_right, debug = map(str, msg.split(','))
         except Exception as e:
-            self.logger.info('poll: Exception while parsing msg'+str(e))
-            self.ser.close()
-            self.ser = None
-            self.logger.info('port Closed')
+            self.logger.info('poll: Exception while parsing msg '+str(e))
+            if (str(e).startswith("Serial port not initialized")):
+            	self.ser.close()
+            	self.ser = None
+            	self.logger.info('port Closed')
+            else:
+                pass
+
+        ts=int(str_ts)
+        throttle_tx=int(str_throttle_tx)
+        steering_tx=int(str_steering_tx)
+        ch5_tx=int(str_ch5_tx)
+        ch6_tx=int(str_ch6_tx)
+        speedometer=int(str_speedometer)
+        sensor_left=int(str_sensor_left)
+        sensor_right=int(str_sensor_right)
 
         now=time.clock()*1000
         self.logger.debug('poll: {} {}'.format(msg,len(msg)))
