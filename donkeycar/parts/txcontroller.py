@@ -86,7 +86,7 @@ class Txserial():
         be the string label determined by the axis map in init.
         '''
          
-        steering_tx = 1500
+        steering_tx = -1
         throttle_tx = 0
         ch5_tx = 0
         ch6_tx = 0
