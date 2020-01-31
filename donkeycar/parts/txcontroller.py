@@ -123,6 +123,7 @@ class Txserial():
                 if (msg.startswith('RX,')):
                     self.logger.debug('poll Tx msg {}'.format(msg))
                     ts, throttle_tx, steering_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = map(int, msg.partition(',')[2].split(','))
+                    break
                 else:
                     continue
 
