@@ -114,10 +114,10 @@ class Txserial():
                     self.logger.debug('poll: Serial buffer underrun {} ... flushing'.format(str(self.ser.in_waiting)))
                     self.ser.reset_input_buffer()
                     continue
-                msg=self.ser.readline().decode('utf-8').strip()
+                msg=self.ser.readline().decode('iso-8859-1').strip()
                 if (len(msg))<=0:
                     continue
-                if (msg.startswith('debug')):
+                if (msg.startswith('Debug')):
                     self.logger.debug('poll Debug msg {}'.format(msg))
                     continue
                 if (msg.startswith('RX,')):
