@@ -134,7 +134,7 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
                            )
         V.add(ctr,
               inputs=['user/mode', 'vehicle_armed', 'cam/image_array', 'pilot/annoted_img'],
-              outputs=['user/angle', 'user/throttle', 'recording', 'ch5', 'ch6', 'speedometer', 'sensor_left', 'sensor_right'],
+              outputs=['user/angle', 'user/throttle', 'recording', 'lane', 'ch5', 'ch6', 'speedometer', 'sensor_left', 'sensor_right'],
               threaded=True)
 
         actionctr = TxAuxCh()
@@ -205,7 +205,7 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
 
     if (myConfig['MODEL']['MODEL_IN_USE'] == 0):
         V.add(kl, inputs=['cam/image_array'],
-            outputs=['pilot/angle', 'pilot/throttle', 'pilot/fullspeed', 'pilot/brake', 'pilot/angle_bind'],
+            outputs=['pilot/angle', 'pilot/throttle', 'pilot/fullspeed', 'pilot/lane', 'pilot/angle_bind'],
             run_condition='run_pilot')
 
     if (myConfig['MODEL']['MODEL_IN_USE'] == 1):
@@ -258,7 +258,7 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
         throttle = PWMThrottle(controller=throttle_controller)
 
         V.add(steering, inputs=['angle'])
-        V.add(throttle, inputs=['throttle', 'user/mode', 'vehicle_armed', 'pilot/fullspeed', 'pilot/brake', 'sensor_left', 'sensor_right'])
+        V.add(throttle, inputs=['throttle', 'user/mode', 'vehicle_armed', 'pilot/fullspeed', None, 'pilot/lane', 'sensor_left', 'sensor_right'])
 
     if cfg.BATTERY_USE_MONITOR:
         logger.info("Init Battery Monitor part")
@@ -266,8 +266,8 @@ def drive(cfg, model_path=None, use_joystick=False, use_tx=False):
         V.add(battery_controller, outputs = ['battery'], threaded=True)
 
     # add tub to save data
-    inputs = ['cam/image_array', 'ms', 'user/angle', 'user/throttle', 'user/mode', 'pilot/angle', 'pilot/throttle', 'flag', 'speedometer']
-    types = ['image_array', 'int', 'float', 'float', 'str', 'numpy.float32', 'numpy.float32', 'str', 'float']
+    inputs = ['cam/image_array', 'ms', 'user/angle', 'user/throttle', 'user/mode', 'pilot/angle', 'pilot/throttle', 'flag', 'speedometer', 'lane']
+    types = ['image_array', 'int', 'float', 'float', 'str', 'numpy.float32', 'numpy.float32', 'str', 'float', 'int']
 
     logger.info("Init Tub Handler part")
     th = TubHandler(path=cfg.DATA_PATH)

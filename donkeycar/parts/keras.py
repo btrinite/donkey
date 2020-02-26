@@ -140,14 +140,14 @@ class KerasCategorical(KerasPilot):
         img_arr = img_arr.reshape((1,) + img_arr.shape)
         with dk.perfmon.TaskDuration('Model Predict') as m:
             self.perflogger.LogCycle()
-            angle_binned, throttle, fullspeed_binned, brake_binned = self.model.predict(img_arr)
+            angle_binned, throttle, fullspeed_binned, lane_binned = self.model.predict(img_arr)
         #print('throttle', throttle)
         #angle_certainty = max(angle_binned[0])
         angle_unbinned = dk.utils.linear_unbin(angle_binned)
         fullspeed_unbinned = dk.utils.linear_unbin(fullspeed_binned)
-        brake_unbinned = dk.utils.linear_unbin(brake_binned)
+        lane_unbinned = dk.utils.linear_unbin(lane_binned)
         dk.perfmon.LogEvent('Model-Poll')
-        return angle_unbinned, throttle[0][0], fullspeed_unbinned, brake_unbinned, angle_binned
+        return angle_unbinned, throttle[0][0], fullspeed_unbinned, lane_unbinned, angle_binned
 
 class KerasCategorical1(KerasPilot):
     def __init__(self, model=None, *args, **kwargs):
@@ -256,20 +256,19 @@ def default_categorical():
     x = Dropout(.1)(x)                                                      # Randomly drop out 10% of the neurons (Prevent overfitting)
     #categorical output of the angle
     angle_out = Dense(15, activation='softmax', name='angle_out')(x)        # Connect every input with every output and output 15 hidden units. Use Softmax to give percentage. 15 categories and find best one based off percentage 0.0-1.0
-    
     #continous output of throttle
     throttle_out = Dense(1, activation='relu', name='throttle_out')(x)      # Reduce to 1 number, Positive number only
-    
+    #other output
     fullspeed_out = Dense(15, activation='softmax', name='fullspeed_out')(x)        
-    brake_out = Dense(15, activation='softmax', name='brake_out')(x)
+    lane_out = Dense(3, activation='softmax', name='lane_out')(x)        
 
-    model = Model(inputs=[img_in], outputs=[angle_out, throttle_out, fullspeed_out, brake_out])
+    model = Model(inputs=[img_in], outputs=[angle_out, throttle_out, fullspeed_out, lane_out])
     model.compile(optimizer='adam',
                   loss={'angle_out': 'categorical_crossentropy', 
                         'throttle_out': 'mean_absolute_error', 
                         'fullspeed_out': 'categorical_crossentropy',
-                        'brake_out' : 'categorical_crossentropy'},
-                  loss_weights={'angle_out': 0.9, 'throttle_out': .001, 'fullspeed_out': 0.9, 'brake_out': 0.9})
+                        'lane_out' : 'categorical_crossentropy'},
+                  loss_weights={'angle_out': 0.9, 'throttle_out': .001, 'fullspeed_out': 0.9, 'lane_out': 0.9})
 
     return model
 
