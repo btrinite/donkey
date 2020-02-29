@@ -142,11 +142,11 @@ class Txserial():
         now=time.clock()*1000
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
-            return 1500,1500,1300,1300,0,0,0
+            return 1500,1500,1500,1300,1300,0,0,0
 
         self.lastLocalTs = now
         self.lastDistTs = ts
-        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, speedometer, sensor_left, sensor_right))
+        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} ch2={:05.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, ch2_tx, speedometer, sensor_left, sensor_right))
 
 
         return throttle_tx, steering_tx, ch2_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right
@@ -232,6 +232,7 @@ class TxController(object):
 
         while self.running:
             throttle_tx, steering_tx, ch2_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right = self.tx.poll(self.mode, self.vehicle_armed)
+            self.logger.debug('poll returned')
             if throttle_tx > myConfig['TX']['TX_THROTTLE_TRESH']:
                 self.throttle = map_range(throttle_tx, myConfig['TX']['TX_THROTTLE_MIN'], myConfig['TX']['TX_THROTTLE_MAX'], -1, 1)
             else:
