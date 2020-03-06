@@ -142,11 +142,11 @@ class Txserial():
         now=time.clock()*1000
         if (steering_tx == -1):
             self.logger.debug('poll: No Rx signal , forcing idle position')
-            return 1500,1500,1300,1300,0,0,0
+            return 1500,1500,1500,1300,1300,0,0,0
 
         self.lastLocalTs = now
         self.lastDistTs = ts
-        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, speedometer, sensor_left, sensor_right))
+        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} ch2={:05.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, ch2_tx, speedometer, sensor_left, sensor_right))
 
 
         return throttle_tx, steering_tx, ch2_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right
@@ -239,7 +239,7 @@ class TxController(object):
             self.on_throttle_changes()
             self.angle = 0-map_range(steering_tx, myConfig['TX']['TX_STEERING_MIN'], myConfig['TX']['TX_STEERING_MAX'], -1, 1)
             self.speedometer = 1-map_range(speedometer,myConfig['TX']['TX_SPEEDOMETER_MIN'], myConfig['TX']['TX_SPEEDOMETER_MAX'], 0, 1)
-            self.lane = int(round(map_range(speedometer,myConfig['TX']['TX_LANE_MIN'], myConfig['TX']['TX_LANE_MAX'], 0, 2)))
+            #self.lane = int(round(map_range(speedometer,myConfig['TX']['TX_LANE_MIN'], myConfig['TX']['TX_LANE_MAX'], 0, 2)))
             self.sensor_left = sensor_left
             self.sensor_right = sensor_right
             if (ch5_tx > myConfig['TX']['TX_CH_AUX_TRESH']+100):
