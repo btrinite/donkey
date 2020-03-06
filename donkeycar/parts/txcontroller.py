@@ -190,7 +190,7 @@ class TxController(object):
         self.poll_delay = poll_delay
         self.running = True
         self.speedometer = 0
-        self.lane = False
+        self.lane = 0
         self.ch5 = False
         self.ch6 = False
         self.sensor_left = 0
