@@ -146,7 +146,7 @@ class Txserial():
 
         self.lastLocalTs = now
         self.lastDistTs = ts
-        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} speedometer= {:03.0f} ch2={:05.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, ch2_tx, speedometer, sensor_left, sensor_right))
+        self.logger.debug('poll Tx params: ts {} steering_tx= {:05.0f} throttle_tx= {:05.0f} ch2={:05.0f} speedometer= {:03.0f} sensor_left= {:05.0f} sensor_right= {:05.0f}'.format(ts, steering_tx, throttle_tx, ch2_tx, speedometer, sensor_left, sensor_right))
 
 
         return throttle_tx, steering_tx, ch2_tx, ch5_tx, ch6_tx, speedometer, sensor_left, sensor_right
@@ -254,7 +254,7 @@ class TxController(object):
             if (ch6_tx < myConfig['TX']['TX_CH_AUX_TRESH']-100):
                 self.ch6 = False
 
-            self.logger.debug('angle={:01.2f} throttle={:01.2f} speed={:01.2f} lane={:d} ch5={:d} ch6={:d}'.format (self.angle, self.throttle, self.speedometer, self.lane, self.ch5, self.ch6))
+            self.logger.debug('Mapped TX param : angle={:01.2f} throttle={:01.2f} speed={:01.2f} lane={:d} ch5={:d} ch6={:d}'.format (self.angle, self.throttle, self.speedometer, self.lane, self.ch5, self.ch6))
             time.sleep(self.poll_delay)
 
     def run_threaded(self, mode=None, vehicle_armed=None, img_arr=None, annoted_img=None):
